@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>1vs1対戦ゲーム</title>
+</head>
+<body>
+    <h1>1vs1対戦ゲーム</h1>
+    <p id="status">プレイヤーを待機中...</p>
+    <button id="player1Btn" onclick="joinGame('player1')">プレイヤー1</button>
+    <button id="player2Btn" onclick="joinGame('player2')">プレイヤー2</button>
+
+    <script>
+        const status = document.getElementById("status");
+        const player1Btn = document.getElementById("player1Btn");
+        const player2Btn = document.getElementById("player2Btn");
+        
+        // WebSocketサーバーのURL（サーバーのIPアドレスを使用）
+        let socket = new WebSocket("ws://192.168.1.60:8080");
+
+        // WebSocket接続が開かれた時の処理
+        socket.onopen = () => {
+            console.log("WebSocket接続成功");
+        };
+
+        // サーバーからメッセージが届いた時の処理
+        socket.onmessage = (event) => {
+            console.log("メッセージ受信: " + event.data);
+            if (event.data === "waiting_for_player2") {
+                status.textContent = "プレイヤー1が待機中... プレイヤー2を待っています。";
+            } else if (event.data === "waiting_for_player1") {
+                status.textContent = "プレイヤー2が待機中... プレイヤー1を待っています。";
+            } else if (event.data === "match_found") {
+                status.textContent = "マッチングが成立しました！ゲーム開始！";
+            }
+        };
+
+        // ゲームに参加するための関数
+        function joinGame(player) {
+            // ボタンを無効化
+            if (player === 'player1') {
+                player1Btn.disabled = true;
+            } else {
+                player2Btn.disabled = true;
+            }
+            // WebSocketでメッセージを送信
+            socket.send(`join_${player}`);
+        }
+    </script>
+</body>
+</html>
